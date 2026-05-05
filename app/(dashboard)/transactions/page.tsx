@@ -2,7 +2,13 @@
 
 import { Header } from "@/components/header"
 import { TransactionsSkeleton } from "@/components/skeletons/transactions-skeleton"
+import { TransactionFilters } from "@/components/transactions/transaction-filters"
+import { TransactionForm } from "@/components/transactions/transaction-form"
+import { TransactionTable } from "@/components/transactions/transaction-table"
+import { Card, CardContent } from "@/components/ui/card"
+import { formatCurrency } from "@/lib/data"
 import { useFinanceStore } from "@/lib/store"
+import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { DateRange } from "react-day-picker"
 
@@ -50,6 +56,11 @@ export default function TransactionsPage(){
         setDateRange(undefined)
     }
 
+    const cards = [
+        { label: 'Entradas', value: totals.income, color: "text-emerald-500", icon: ArrowUpRight },
+        { label: 'Despesas', value: totals.expense, color: "text-red-500", icon: ArrowDownRight }
+]
+
   if (!mounted) {
     return <TransactionsSkeleton />
   }
@@ -57,6 +68,39 @@ export default function TransactionsPage(){
     return(
         <div className="flex-1 flex flex-col">
             <Header title="Transações" subtitle={`${filteredTransactions.length} transações encontradas`} />
+            <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                        {cards.map(({color, icon: Icon, label, value }) => (
+                            <Card key={value} className="border-border/50 bg-card/50">
+                                <CardContent className="flex items-center gap-2 px-4 py-2">
+                                    <Icon className={`size-4 text-${color}`} />
+                                    <span className="text-sm text-muted-foreground">{label}:</span>
+                                    <span className={`font-semibold ${color}`}>{formatCurrency(value)}</span>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    <TransactionForm categories={categories} />
+                </div>
+
+                <div className="mt-4">
+                    <TransactionFilters
+                        categories={categories}
+                        selectedType={selectedType}
+                        selectedCategory={selectedCategory}
+                        dateRange={dateRange}
+                        onTypeChange={setSelectedType}
+                        onCategoryChange={setSelectedCategory}
+                        onDateRangeChange={setDateRange}
+                        onClearFilters={clearFilters}
+                    />
+                </div>
+
+                <div className="mt-6">
+                    <TransactionTable transactions={filteredTransactions} categories={categories} />
+                </div>
+            </main>
         </div>
     )
 }
