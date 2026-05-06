@@ -1,7 +1,6 @@
 'use client'
 
 import { Category } from "@/lib/data"
-import { useFinanceStore } from "@/lib/store"
 import { CategoryFormData, categorySchema } from "@/schemas/data"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
@@ -12,18 +11,39 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus } from "lucide-react"
-
-const ICON_OPTIONS = [
-  "Wallet", "Laptop", "TrendingUp", "Plus", "Utensils", "Car", "Home", "Heart",
-  "GraduationCap", "Gamepad2", "ShoppingBag", "Receipt", "CreditCard", "Plane",
-  "Gift", "Coffee", "Smartphone", "Music", "Book", "Dumbbell"
-]
+import { Book, Car, Coffee, CreditCard, Dumbbell, Gamepad2, Gift, GraduationCap, Heart, Home, Laptop, Music, Plane, Plus, Receipt, ShoppingBag, Smartphone, TrendingUp, Utensils, Wallet } from "lucide-react"
 
 const COLOR_OPTIONS = [
   "#10b981", "#3b82f6", "#8b5cf6", "#06b6d4", "#f97316", "#eab308",
   "#ef4444", "#ec4899", "#14b8a6", "#a855f7", "#f43f5e", "#6366f1"
 ]
+
+const ICON_MAP = {
+  Wallet: Wallet,
+  Laptop: Laptop,
+  TrendingUp: TrendingUp,
+  Plus: Plus,
+  Utensils: Utensils,
+  Car: Car,
+  Home: Home,
+  Heart: Heart,
+  GraduationCap: GraduationCap,
+  Gamepad2: Gamepad2,
+  ShoppingBag: ShoppingBag,
+  Receipt: Receipt,
+  CreditCard: CreditCard,
+  Plane: Plane,
+  Gift: Gift,
+  Coffee: Coffee,
+  Smartphone: Smartphone,
+  Music: Music,
+  Book: Book,
+  Dumbbell: Dumbbell,
+} as const
+
+type IconName = keyof typeof ICON_MAP
+
+const ICON_OPTIONS = Object.keys(ICON_MAP) as IconName[]
 
 interface CategoryFormProps {
   category?: Category
@@ -31,26 +51,24 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ category, onClose }: CategoryFormProps) {
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState(category?.name || "")
-  const [icon, setIcon] = useState(category?.icon || "Wallet")
-  const [color, setColor] = useState(category?.color || "#10b981")
-  const [type, setType] = useState<"income" | "expense">(category?.type || "expense")
+  const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      name: '',
-      type: 'expense',
-      color: '',
-      icon: ''
+      name: category?.name ?? '',
+      type: category?.type ?? 'expense',
+      color: category?.color ?? '#10b981',
+      icon: (category?.icon as IconName) ?? 'Wallet'
     }
   })
 
-  const { watch, handleSubmit, formState, control } = form
+  const { watch, handleSubmit, formState, control } = form;
 
-  const addCategory = useFinanceStore((state) => state.addCategory)
-  const updateCategory = useFinanceStore((state) => state.updateCategory)
+  const name = watch('name')
+  const icon = watch('icon') as IconName
+  const color = watch('color')
+  const type = watch('type')
 
   async function onSubmit(values: CategoryFormData) {
     console.log(values);
@@ -84,10 +102,10 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
               <FormLabel>Tipo</FormLabel>
               <FormControl>
                 <div className="flex gap-2">
-                  <Button variant={field.value === 'income' ? 'default' : 'outline'} className={cn('flex-1', field.value === 'income' && 'bg-emerald-600')} onClick={() => setType('income')}>
+                  <Button variant={field.value === 'income' ? 'default' : 'outline'} className={cn('flex-1', field.value === 'income' && 'bg-emerald-600')} onClick={() => field.onChange('income')}>
                     Entrada
                   </Button>
-                  <Button variant={type === 'expense' ? 'default' : 'outline'} className={cn('flex-1', type === 'expense' && 'bg-red-500 hover:bg-red-600')} onClick={() => setType('expense')}>
+                  <Button variant={type === 'expense' ? 'default' : 'outline'} className={cn('flex-1', type === 'expense' && 'bg-red-500 hover:bg-red-600')} onClick={() => field.onChange('expense')}>
                     Saída
                   </Button>
                 </div>
@@ -105,11 +123,18 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {ICON_OPTIONS.map((iconName) => (
-                    <SelectItem key={iconName} value={iconName}>
-                      {iconName}
-                    </SelectItem>
-                  ))}
+                  {ICON_OPTIONS.map((iconName) => {
+                    const Icon = ICON_MAP[iconName]
+
+                    return (
+                      <SelectItem key={iconName} value={iconName}>
+                        <div className="flex items-center gap-2">
+                          <Icon className="size-4" />
+                          <span>{iconName}</span>
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -144,7 +169,7 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
         </div>
 
         <DialogFooter>
-          <Button variant='outline' onClick={() => {
+          <Button type="button" variant='outline' onClick={() => {
             setOpen(false)
             onClose?.()
           }}>Cancelar

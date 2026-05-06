@@ -9,6 +9,7 @@ import { ArrowDownRight, ArrowUpRight, MoreHorizontal, Pencil, Trash2 } from "lu
 import { Badge } from "../ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Button } from "../ui/button"
+import { deleteTransaction } from "@/app/actions/transactions/delete-transaction"
 
 interface TransactionTableProps{
   transactions: Transaction[]
@@ -16,13 +17,11 @@ interface TransactionTableProps{
 }
 
 export function TransactionTable({ categories, transactions }: TransactionTableProps) {
-  const deleteTransaction = useFinanceStore((state) => state.deleteTransaction)
-
   const getCategory = (categoryId: string) =>
     categories.find((c) => c.id === categoryId)
 
-  const handleDelete = (id: string) => {
-    deleteTransaction(id)
+  async function handleDelete(id: string) {
+    await deleteTransaction(id)
     toast.success("Transação removida com sucesso!")
   }
 

@@ -16,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from 'date-fns';
 import { ptBR } from "date-fns/locale"
 import { Calendar } from "../ui/calendar"
+import { createTransaction } from "@/app/actions/transactions/transactions"
+import { toast } from "sonner"
 
 
 interface TransactionFormProps{
@@ -63,7 +65,16 @@ export function TransactionForm({ categories }: TransactionFormProps) {
   const { handleSubmit, control, formState } = form;
 
   async function onSubmit(values: FormData) {
-    console.log(values)
+    const result = await createTransaction(values);
+
+    if(!result.success){
+      toast.error('Erro ao criar transação')
+      return;
+    }
+
+    toast.success('Transação criada!');
+    setOpen(false);
+    form.reset();
   }
 
   return (
